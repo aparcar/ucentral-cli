@@ -1,0 +1,8 @@
+*$py.class
+*.egg
+*.egg-info/
+*.py[cod]
+__pycache__/
+build/
+develop-eggs/
+dist/

@@ -25,7 +25,6 @@ class Ucentral:
 
         try:
             validate(instance=tmp_config, schema=self.schema)
-            return True
         except ValidationError as e:
             print(e)
             return False

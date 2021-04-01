@@ -14,7 +14,7 @@ with open(join(base_path, "requirements.txt")) as req_file:
 
 setup(
     name="ucentral",
-    version="0.0.1",
+    version="0.0.2",
     url="https://github.com/aparcar/ucentral-cli",
     maintainer="Paul Spooren",
     maintainer_email="mail@aparcar.org",
