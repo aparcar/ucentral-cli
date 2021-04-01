@@ -16,12 +16,12 @@ The latest [ucentral.schema.json][2] is required in the main folder.
 
 Run CLI via `ucentral`
 
-    print                     Show current configuration
+    show                      Show current configuration
     get <path>                Show value stored at path
-    import <filename>         Import a valid JSON configuration
-    commit <filename>         Save configuration to <filename>
     set <path>=<value>        Set value, e.g. log.log_size=64
     add <path>                Add object to list at <path>
+    load <filename>           Import a valid JSON configuration
+    write <filename>          Save configuration to <filename>
     add_list <path>=<value>   Add empty object to list
     del_list <path>=<value>   Add value to list
 

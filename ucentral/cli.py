@@ -1,103 +1,22 @@
 from jsonschema import validate, ValidationError
-from pathlib import Path
 import json
 import magicattr as ma
 from ast import literal_eval
+from sys import argv
 
 from ucentral.util import Config
-
-
-schema = json.load(open("ucentral.schema.json"))
-
-
-def add(config, string):
-    tmp_config = Config()
-    tmp_config.update(config)
-
-    if not ma.get(config, string):
-        ma.set(config, string, [])
-
-    obj, name, _ = ma.lookup(config, string)
-    obj[name].append(Config())
-
-    try:
-        validate(instance=tmp_config, schema=schema)
-    except ValidationError as e:
-        print(e)
-        return
-
-    config.update(tmp_config)
-    print(f"{string}[{len(obj[name]) - 1}]")
-
-
-def add_list(config, string):
-    tmp_config = Config()
-    tmp_config.update(config)
-
-    path, value = string.split("=", maxsplit=1)
-
-    if not ma.get(tmp_config, path):
-        ma.set(tmp_config, path, [])
-
-    obj, name, _ = ma.lookup(tmp_config, path)
-    obj[name].append(literal_eval(value.strip()))
-
-    try:
-        validate(instance=tmp_config, schema=schema)
-    except ValidationError as e:
-        print(e)
-        return
-    config.update(tmp_config)
-
-
-def del_list(config, string):
-    tmp_config = Config()
-    tmp_config.update(config)
-
-    path, value = string.split("=", maxsplit=1)
-
-    if not ma.get(tmp_config, path):
-        ma.set(tmp_config, path, [])
-
-    obj, name, _ = ma.lookup(tmp_config, path)
-    obj[name].remove(literal_eval(value.strip()))
-
-    try:
-        validate(instance=tmp_config, schema=schema)
-    except ValidationError as e:
-        print(e)
-        return
-    config.update(tmp_config)
-
-
-def get(config, string):
-    obj, name, _ = ma.lookup(config, string)
-    print(obj[name])
-
-
-def set(config, string):
-    tmp_config = Config()
-    tmp_config.update(config)
-    path, value = string.split("=", maxsplit=1)
-
-    ma.set(tmp_config, path.strip(), literal_eval(value.strip()))
-    try:
-        validate(instance=tmp_config, schema=schema)
-    except ValidationError as e:
-        print(e)
-        return
-    config.update(tmp_config)
+from ucentral.ucentral import Ucentral
 
 
 def usage():
     print(
         """Usage:
-  print                     Show current configuration
+  show                      Show current configuration
   get <path>                Show value stored at path
-  import <filename>         Import a valid JSON configuration
-  commit <filename>         Save configuration to <filename>
   set <path>=<value>        Set value, e.g. log.log_size=64
   add <path>                Add object to list at <path>
+  load <filename>           Import a valid JSON configuration
+  write <filename>          Save configuration to <filename>
   add_list <path>=<value>   Add empty object to list
   del_list <path>=<value>   Add value to list
 
@@ -140,53 +59,50 @@ Examples:
     )
 
 
-def parse_cmd(config, cmd):
-    if cmd == "print":
-        print(json.dumps(config, sort_keys=True, indent=4))
+def parse_cmd(uc, cmd):
+    operation, *argument = cmd.split(maxsplit=1)
+    if operation == "show":
+        uc.show()
 
-    elif cmd.startswith("import "):
-        filename = cmd.split(maxsplit=1)[1]
-        tmp_config = json.load(open(filename))
-        try:
-            validate(instance=tmp_config, schema=schema)
-        except ValidationError as e:
-            print(e)
-            return
-        config.update(tmp_config)
+    elif operation == "set":
+        uc.set(argument[0])
 
-    elif cmd.startswith("commit "):
-        filename = cmd.split(maxsplit=1)[1]
-        json.dump(config, open(filename, "w"), sort_keys=True, indent=True)
-        print(f"Config written to {filename}")
+    elif operation == "add":
+        uc.add(argument[0])
 
-    elif cmd == "help":
-        usage()
+    elif operation == "get":
+        uc.get(argument[0])
 
-    elif cmd.startswith("set "):
-        set(config, cmd.split(maxsplit=1)[-1])
+    elif operation == "add_list":
+        uc.add_list(argument[0])
 
-    elif cmd.startswith("add "):
-        add(config, cmd.split(maxsplit=1)[-1])
+    elif operation == "del_list":
+        uc.del_list(argument[0])
 
-    elif cmd.startswith("add_list "):
-        add_list(config, cmd.split(maxsplit=1)[-1])
+    elif operation == "load":
+        uc.load(argument[0])
 
-    elif cmd.startswith("get "):
-        get(config, cmd.split(maxsplit=1)[-1])
+    elif operation == "write":
+        uc.write(argument[0])
 
-    elif cmd.startswith("del_list "):
-        del_list(config, cmd.split(maxsplit=1)[-1])
+    elif operation == "schema_load":
+        uc.load_schema(argument[0])
 
     else:
         usage()
 
 
 def loop():
-    config = Config()
+    uc = Ucentral()
+    if len(argv) == 2:
+        uc.schema_load(argv[1])
+    else:
+        uc.schema_load("ucentral.schema.json")
+
     while True:
         cmd = input(">> ")
         try:
-            parse_cmd(config, cmd)
+            parse_cmd(uc, cmd)
         except Exception as e:
             # TODO: dirty
             print(e)
