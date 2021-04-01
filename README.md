@@ -14,7 +14,7 @@ The latest [ucentral.schema.json][2] is required in the main folder.
 
 ## Usage
 
-Run CLI via `python3 ucentral/cli.py`
+Run CLI via `ucentral`
 
     print                     Show current configuration
     get <path>                Show value stored at path

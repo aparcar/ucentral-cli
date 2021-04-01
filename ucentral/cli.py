@@ -181,13 +181,16 @@ def parse_cmd(config, cmd):
         usage()
 
 
-if __name__ == "__main__":
+def loop():
     config = Config()
     while True:
-        print(config)
         cmd = input(">> ")
         try:
             parse_cmd(config, cmd)
         except Exception as e:
             # TODO: dirty
             print(e)
+
+
+if __name__ == "__main__":
+    loop()

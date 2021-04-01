@@ -19,6 +19,9 @@ setup(
     maintainer="Paul Spooren",
     maintainer_email="mail@aparcar.org",
     description="CLI to create ucentral configuration files",
+    entry_points={
+        "console_scripts": ["ucentral=ucentral.cli:loop"],
+    },
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=find_packages(),
