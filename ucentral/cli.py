@@ -152,7 +152,7 @@ def parse_cmd(config, cmd):
         except ValidationError as e:
             print(e)
             return
-        config = tmp_config.copy()
+        config.update(tmp_config)
 
     elif cmd.startswith("commit "):
         filename = cmd.split(maxsplit=1)[1]
