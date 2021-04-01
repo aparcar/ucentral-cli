@@ -92,12 +92,14 @@ def set(config, string):
 def usage():
     print(
         """Usage:
-  print                 Show current configuration
-  get <path>            Show value stored at path
-  import <filename>     Import a valid JSON configuration
-  commit <filename>     Save configuration to <filename>
-  set <path>=<value>    Set value, e.g. log.log_size=64
-  add <path>            Add object to list at <path>
+  print                     Show current configuration
+  get <path>                Show value stored at path
+  import <filename>         Import a valid JSON configuration
+  commit <filename>         Save configuration to <filename>
+  set <path>=<value>        Set value, e.g. log.log_size=64
+  add <path>                Add object to list at <path>
+  add_list <path>=<value>   Add empty object to list
+  del_list <path>=<value>   Add value to list
 
 Examples:
   >> set uuid=123
