@@ -1,16 +1,14 @@
-from jsonschema import validate, ValidationError
 import json
-import magicattr as ma
 from ast import literal_eval
 from sys import argv
 
-from ucentral.util import Config
+import magicattr as ma
+from jsonschema import ValidationError, validate
+
 from ucentral.ucentral import Ucentral
+from ucentral.util import Config
 
-
-def usage():
-    print(
-        """Usage:
+usage = """Usage:
   show                      Show current configuration
   get <path>                Show value stored at path
   set <path>=<value>        Set value, e.g. log.log_size=64
@@ -56,7 +54,6 @@ Examples:
       "uuid": 123
   }
   """
-    )
 
 
 def parse_cmd(uc, cmd):
@@ -65,31 +62,31 @@ def parse_cmd(uc, cmd):
         uc.show()
 
     elif operation == "set":
-        uc.set(argument[0])
+        return uc.set(argument[0])
 
     elif operation == "add":
-        uc.add(argument[0])
+        return uc.add(argument[0])
 
     elif operation == "get":
-        uc.get(argument[0])
+        return uc.get(argument[0])
 
     elif operation == "add_list":
-        uc.add_list(argument[0])
+        return uc.add_list(argument[0])
 
     elif operation == "del_list":
-        uc.del_list(argument[0])
+        return uc.del_list(argument[0])
 
     elif operation == "load":
-        uc.load(argument[0])
+        return uc.load(argument[0])
 
     elif operation == "write":
-        uc.write(argument[0])
+        return uc.write(argument[0])
 
     elif operation == "schema_load":
-        uc.load_schema(argument[0])
+        return uc.load_schema(argument[0])
 
     else:
-        usage()
+        return usage
 
 
 def loop():
@@ -102,7 +99,7 @@ def loop():
     while True:
         cmd = input(">> ")
         try:
-            parse_cmd(uc, cmd)
+            print(parse_cmd(uc, cmd))
         except Exception as e:
             # TODO: dirty
             print(e)

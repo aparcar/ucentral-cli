@@ -1,8 +1,10 @@
-from ucentral.util import Config, merge
 import json
-import magicattr as ma
-from jsonschema import validate, ValidationError
 from ast import literal_eval
+
+import magicattr as ma
+from jsonschema import ValidationError, validate
+
+from ucentral.util import Config, merge
 
 
 class Ucentral:
@@ -26,11 +28,10 @@ class Ucentral:
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return False
+            return e
 
         self.config.update(tmp_config)
-        print(f"{string}[{len(obj[name]) - 1}]")
+        return f"{string}[{len(obj[name]) - 1}]"
 
     def add_list(self, string):
         tmp_config = Config()
@@ -47,8 +48,7 @@ class Ucentral:
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return
+            return e
         self.config.update(tmp_config)
 
     def del_list(self, string):
@@ -66,13 +66,12 @@ class Ucentral:
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return
+            return e
         self.config.update(tmp_config)
 
     def get(self, string):
         obj, name, _ = ma.lookup(self.config, string)
-        print(obj[name])
+        return obj[name]
 
     def set(self, string):
         tmp_config = Config()
@@ -80,15 +79,17 @@ class Ucentral:
         path, value = string.split("=", maxsplit=1)
 
         ma.set(tmp_config, path.strip(), literal_eval(value.strip()))
+
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return
+            return e
+
         self.config.update(tmp_config)
+        return True
 
     def show(self):
-        print(json.dumps(self.config, sort_keys=True, indent=4))
+        return json.dumps(self.config, sort_keys=True, indent=4)
 
     def load(self, filename: str):
         if not filename:
@@ -98,8 +99,7 @@ class Ucentral:
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return
+            return e
 
         self.config.update(tmp_config)
 
@@ -109,6 +109,7 @@ class Ucentral:
         self.schema = json.load(open(filename))
 
         self.last_schema_path = filename
+        return True
 
     def write(self, filename: str = None):
         if not filename:
@@ -118,7 +119,7 @@ class Ucentral:
 
         self.last_write_path = filename
 
-        print(f"Config written to {filename}")
+        return f"Config written to {filename}"
 
     def merge(self, obj):
         tmp_config = Config()
@@ -128,7 +129,6 @@ class Ucentral:
         try:
             validate(instance=tmp_config, schema=self.schema)
         except ValidationError as e:
-            print(e)
-            return
+            return e
 
         self.config.update(tmp_config)
