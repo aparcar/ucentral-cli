@@ -16,27 +16,28 @@ The latest [ucentral.schema.json][2] is required in the main folder.
 
 Run CLI via `ucentral`
 
-    show                      Show current configuration
-    get <path>                Show value stored at path
-    set <path>=<value>        Set value, e.g. log.log_size=64
-    add <path>                Add object to list at <path>
-    load <filename>           Import a valid JSON configuration
-    write <filename>          Save configuration to <filename>
-    add_list <path>=<value>   Add empty object to list
-    del_list <path>=<value>   Add value to list
+Supported commands:
+
+ * `add`
+ * `add-list`
+ * `del-list`
+ * `get`
+ * `load`
+ * `schema-load`
+ * `set`
+ * `show`
+ * `write`
+
+Type `help <command>` to see usage.
 
 ## Examples
 
-    >> set uuid=123
-    >> add network
-    network[0]
-    >> set network[0].cfg.dhcp.leasetime='12h'
-    >> add network[0].cfg.leases
-    network[0].cfg.leases[0]
-    >> set network[0].cfg.leases[0].hostname=Apollo
-    >> add_list ntp.server = "ntp.example.org"
-    >> add_list ntp.server = "ntp.example.com"
-    >> print
+    >> set uuid 123
+    >> set network.0.cfg.dhcp.leasetime 12h
+    >> set network.0.cfg.leases.0.hostname Apollo
+    >> add_list ntp.server ntp.example.org
+    >> add_list ntp.server ntp.example.com
+    >> show
 
     {
         "network": [

@@ -1,13 +1,10 @@
-class Config(dict):
-    def __getattr__(self, key):
-        try:
-            return self[key]
-        except KeyError:
-            self[key] = value = Config()
-            return value
-
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
+def duck(value):
+    if isinstance(value, str):
+        if value.isdigit():
+            return int(value)
+        elif value.isdecimal():
+            return float(value)
+    return value
 
 
 def merge(src, dest):
