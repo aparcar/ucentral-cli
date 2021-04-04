@@ -3,6 +3,8 @@ from os.path import abspath, dirname, join
 
 from setuptools import find_packages, setup
 
+from ucentral import __version__
+
 with io.open("README.md", "rt", encoding="utf8") as f:
     readme = f.read()
 
@@ -13,13 +15,13 @@ with open(join(base_path, "requirements.txt")) as req_file:
 
 setup(
     name="ucentral",
-    version="0.0.2",
+    version=__version__,
     url="https://github.com/aparcar/ucentral-cli",
     maintainer="Paul Spooren",
     maintainer_email="mail@aparcar.org",
     description="CLI to create ucentral configuration files",
     entry_points={
-        "console_scripts": ["ucentral=ucentral.cli:loop"],
+        "console_scripts": ["ucentral=ucentral.cli:cli"],
     },
     long_description=readme,
     long_description_content_type="text/markdown",

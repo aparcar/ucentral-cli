@@ -1,107 +1,78 @@
 import json
-from ast import literal_eval
 
-import magicattr as ma
+from dotty_dict import dotty
 from jsonschema import ValidationError, validate
 
-from ucentral.util import Config, merge
+from ucentral.util import duck, merge
 
 
 class Ucentral:
     def __init__(self):
-        self.config = Config()
+        self.config = dotty({})
         self.schema = {}
         self.last_load_path = None
         self.last_schema_path = None
         self.last_write_path = None
 
-    def add(self, string):
-        tmp_config = Config()
-        tmp_config.update(self.config)
-
-        if not ma.get(self.config, string):
-            ma.set(self.config, string, [])
-
-        obj, name, _ = ma.lookup(self.config, string)
-        obj[name].append(Config())
-
+    def apply_if_valid(self, tmp_config, ret=True):
         try:
-            validate(instance=tmp_config, schema=self.schema)
+            validate(instance=tmp_config.to_dict(), schema=self.schema)
+            self.config.update(tmp_config)
+            return ret
         except ValidationError as e:
             return e
 
-        self.config.update(tmp_config)
-        return f"{string}[{len(obj[name]) - 1}]"
-
-    def add_list(self, string):
-        tmp_config = Config()
+    def add(self, path):
+        tmp_config = dotty()
         tmp_config.update(self.config)
 
-        path, value = string.split("=", maxsplit=1)
+        tmp_config.setdefault(path, [])
+        tmp_config[path].append({})
+        elements = len(tmp_config[path]) - 1
 
-        if not ma.get(tmp_config, path):
-            ma.set(tmp_config, path, [])
+        return self.apply_if_valid(tmp_config, f"{path}.{elements}")
 
-        obj, name, _ = ma.lookup(tmp_config, path)
-        obj[name].append(literal_eval(value.strip()))
-
-        try:
-            validate(instance=tmp_config, schema=self.schema)
-        except ValidationError as e:
-            return e
-        self.config.update(tmp_config)
-
-    def del_list(self, string):
-        tmp_config = Config()
+    def add_list(self, path, value):
+        tmp_config = dotty()
         tmp_config.update(self.config)
 
-        path, value = string.split("=", maxsplit=1)
+        tmp_config.setdefault(path, [])
+        tmp_config[path].append(duck(value))
 
-        if not ma.get(tmp_config, path):
-            ma.set(tmp_config, path, [])
+        return self.apply_if_valid(tmp_config)
 
-        obj, name, _ = ma.lookup(tmp_config, path)
-        obj[name].remove(literal_eval(value.strip()))
-
-        try:
-            validate(instance=tmp_config, schema=self.schema)
-        except ValidationError as e:
-            return e
-        self.config.update(tmp_config)
-
-    def get(self, string):
-        obj, name, _ = ma.lookup(self.config, string)
-        return obj[name]
-
-    def set(self, string):
-        tmp_config = Config()
+    def del_list(self, path, value):
+        tmp_config = dotty()
         tmp_config.update(self.config)
-        path, value = string.split("=", maxsplit=1)
 
-        ma.set(tmp_config, path.strip(), literal_eval(value.strip()))
+        if isinstance(tmp_config[path], list):
+            tmp_config[path].remove(duck(value))
+        else:
+            return f"{path} is not a list"
 
-        try:
-            validate(instance=tmp_config, schema=self.schema)
-        except ValidationError as e:
-            return e
+        return self.apply_if_valid(tmp_config)
 
-        self.config.update(tmp_config)
-        return True
+    def get(self, path):
+        return self.config.get(path)
+
+    def set(self, path, value):
+        tmp_config = dotty()
+        tmp_config.update(self.config)
+
+        tmp_config[path] = duck(value)
+
+        return self.apply_if_valid(tmp_config)
 
     def show(self):
-        return json.dumps(self.config, sort_keys=True, indent=4)
+        return self.config.to_json()
 
     def load(self, filename: str):
         if not filename:
             filename = self.last_load_path
 
         tmp_config = json.load(open(filename))
-        try:
-            validate(instance=tmp_config, schema=self.schema)
-        except ValidationError as e:
-            return e
 
-        self.config.update(tmp_config)
+        return self.apply_if_valid(tmp_config)
 
     def schema_load(self, filename: str):
         if not filename:
@@ -109,26 +80,22 @@ class Ucentral:
         self.schema = json.load(open(filename))
 
         self.last_schema_path = filename
-        return True
+        return f"Schema loaded from {filename}"
 
     def write(self, filename: str = None):
         if not filename:
             filename = self.last_write_path
 
-        json.dump(self.config, open(filename, "w"), sort_keys=True, indent=4)
+        json.dump(self.config.to_dict(), open(filename, "w"), sort_keys=True, indent=4)
 
         self.last_write_path = filename
 
         return f"Config written to {filename}"
 
     def merge(self, obj):
-        tmp_config = Config()
+        tmp_config = dotty()
         tmp_config.update(self.config)
 
         merge(obj, tmp_config)
-        try:
-            validate(instance=tmp_config, schema=self.schema)
-        except ValidationError as e:
-            return e
 
-        self.config.update(tmp_config)
+        return self.apply_if_valid(tmp_config)

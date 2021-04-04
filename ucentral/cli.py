@@ -1,109 +1,85 @@
-import json
-from ast import literal_eval
-from sys import argv
+from pathlib import Path
 
-import magicattr as ma
-from jsonschema import ValidationError, validate
+import click
+from click_shell import shell
 
+from ucentral import __version__
 from ucentral.ucentral import Ucentral
-from ucentral.util import Config
 
-usage = """Usage:
-  show                      Show current configuration
-  get <path>                Show value stored at path
-  set <path>=<value>        Set value, e.g. log.log_size=64
-  add <path>                Add object to list at <path>
-  load <filename>           Import a valid JSON configuration
-  write <filename>          Save configuration to <filename>
-  add_list <path>=<value>   Add empty object to list
-  del_list <path>=<value>   Add value to list
-
-Examples:
-  >> set uuid=123
-  >> add network
-  network[0]
-  >> set network[0].cfg.dhcp.leasetime='12h'
-  >> add network[0].cfg.leases
-  network[0].cfg.leases[0]
-  >> set network[0].cfg.leases[0].hostname=Apollo
-  >> add_list ntp.server = "ntp.example.org"
-  >> add_list ntp.server = "ntp.example.com"
-  >> print
-
-  {
-      "network": [
-          {
-              "cfg": {
-                  "dhcp": {
-                      "leasetime": "12h"
-                  },
-                  "leases": [
-                      {
-                          "hostname": "Apollo"
-                      }
-                  ]
-              }
-          }
-      ],
-      "ntp": {
-          "server": [
-              "ntp.example.org",
-              "ntp.example.com"
-          ]
-      },
-      "uuid": 123
-  }
-  """
+uc = Ucentral()
 
 
-def parse_cmd(uc, cmd):
-    operation, *argument = cmd.split(maxsplit=1)
-    if operation == "show":
-        uc.show()
-
-    elif operation == "set":
-        return uc.set(argument[0])
-
-    elif operation == "add":
-        return uc.add(argument[0])
-
-    elif operation == "get":
-        return uc.get(argument[0])
-
-    elif operation == "add_list":
-        return uc.add_list(argument[0])
-
-    elif operation == "del_list":
-        return uc.del_list(argument[0])
-
-    elif operation == "load":
-        return uc.load(argument[0])
-
-    elif operation == "write":
-        return uc.write(argument[0])
-
-    elif operation == "schema_load":
-        return uc.load_schema(argument[0])
-
+@shell(prompt=">> ")
+def cli():
+    print(f"ucentral cli v{__version__}")
+    schema_path = Path.cwd() / "ucentral.schema.json"
+    if schema_path.is_file():
+        uc.schema_load(schema_path)
+        print("Loaded schema `ucentral.schema.json`")
     else:
-        return usage
+        print("No schema loaded, please run `schema-load <filename>`")
 
 
-def loop():
-    uc = Ucentral()
-    if len(argv) == 2:
-        uc.schema_load(argv[1])
-    else:
-        uc.schema_load("ucentral.schema.json")
-
-    while True:
-        cmd = input(">> ")
-        try:
-            print(parse_cmd(uc, cmd))
-        except Exception as e:
-            # TODO: dirty
-            print(e)
+@cli.command()
+def show():
+    """Show current configuration"""
+    print(uc.show())
 
 
-if __name__ == "__main__":
-    loop()
+@cli.command()
+@click.argument("path")
+@click.argument("value")
+def set(path, value):
+    """Set <path> to <value>"""
+    print(uc.set(path, value))
+
+
+@cli.command()
+@click.argument("path")
+def add(path):
+    """ Add an anonymous obejct to the given configuration."""
+    print(uc.add(path))
+
+
+@cli.command()
+@click.argument("path")
+def get(path):
+    """Return value from <path>"""
+    print(uc.get(path))
+
+
+@cli.command()
+@click.argument("path")
+@click.argument("value")
+def add_list(path, value):
+    """Add the given string to an existing list option."""
+    print(uc.add_list(path, value))
+
+
+@cli.command()
+@click.argument("path")
+@click.argument("value")
+def del_list(path, value):
+    """Delete element <value> from list at <path>"""
+    print(uc.del_list(path, value))
+
+
+@cli.command()
+@click.argument("filename", type=click.Path(exists=True))
+def load(filename):
+    """Load configuration from JSON at <filename>"""
+    print(uc.load(filename))
+
+
+@cli.command()
+@click.argument("filename", type=click.Path(writable=True))
+def write(filename):
+    """Store configuration as JSON at <filename>"""
+    print(uc.write(filename))
+
+
+@cli.command()
+@click.argument("filename", type=click.Path(exists=True))
+def schema_load(filename):
+    """Load JSON schema from <filename>"""
+    print(uc.schema_load(filename))
