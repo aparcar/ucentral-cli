@@ -6,7 +6,7 @@ Create and modify valid [ucentral-schema][1] schemata.
 
 ## Installation
 
-    pip install -e .
+    pip install ucentral
 
 The latest [ucentral.schema.json][2] is required in the main folder.
 
