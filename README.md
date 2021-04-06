@@ -18,15 +18,17 @@ Run CLI via `ucentral`
 
 Supported commands:
 
- * `add`
- * `add-list`
- * `del-list`
- * `get`
- * `load`
- * `schema-load`
- * `set`
- * `show`
- * `write`
+    add          Add an anonymous obejct to the given configuration.
+    add-list     Add the given value to a list option.
+    base64       Set <path> to base64 encoded content <filename>
+    del-list     Delete element <value> from list at <path>
+    file         Set <path> to content of <filename>
+    get          Return value from <path>
+    load         Load configuration from JSON at <filename>
+    schema-load  Load JSON schema from <filename>
+    set          Set <path> to <value>
+    show         Show current configuration
+    write        Store configuration as JSON at <filename>
 
 Type `help <command>` to see usage.
 

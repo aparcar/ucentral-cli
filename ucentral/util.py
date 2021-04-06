@@ -1,3 +1,6 @@
+import json
+
+
 def duck(value):
     if isinstance(value, str):
         if value.isdigit():
@@ -16,3 +19,7 @@ def merge(src, dest):
             dest[key] = value
 
     return dest
+
+
+def pretty(data: dict):
+    return json.dumps(data, indent=4, sort_keys=True)

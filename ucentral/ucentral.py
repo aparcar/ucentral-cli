@@ -1,9 +1,11 @@
 import json
+from base64 import b64encode
+from pathlib import Path
 
 from dotty_dict import dotty
 from jsonschema import ValidationError, validate
 
-from ucentral.util import duck, merge
+from ucentral.util import duck, merge, pretty
 
 
 class Ucentral:
@@ -53,7 +55,7 @@ class Ucentral:
         return self.apply_if_valid(tmp_config)
 
     def get(self, path):
-        return self.config.get(path)
+        return pretty(self.config.get(path))
 
     def set(self, path, value):
         tmp_config = dotty()
@@ -63,14 +65,30 @@ class Ucentral:
 
         return self.apply_if_valid(tmp_config)
 
+    def file(self, path, filename):
+        tmp_config = dotty()
+        tmp_config.update(self.config)
+
+        tmp_config[path] = Path(filename).read_text()
+
+        return self.apply_if_valid(tmp_config)
+
+    def base64(self, path, filename):
+        tmp_config = dotty()
+        tmp_config.update(self.config)
+
+        tmp_config[path] = b64encode(Path(filename).read_bytes()).decode()
+
+        return self.apply_if_valid(tmp_config)
+
     def show(self):
-        return self.config.to_json()
+        return pretty(self.config.to_dict())
 
     def load(self, filename: str):
         if not filename:
             filename = self.last_load_path
 
-        tmp_config = json.load(open(filename))
+        tmp_config = dotty(json.load(open(filename)))
 
         return self.apply_if_valid(tmp_config)
 

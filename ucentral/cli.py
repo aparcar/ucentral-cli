@@ -36,6 +36,22 @@ def set(path, value):
 
 @cli.command()
 @click.argument("path")
+@click.argument("filename", type=click.Path(exists=True))
+def file(path, filename):
+    """Set <path> to content of <filename>"""
+    print(uc.file(path, filename))
+
+
+@cli.command()
+@click.argument("path")
+@click.argument("filename", type=click.Path(exists=True))
+def base64(path, filename):
+    """Set <path> to base64 encoded content <filename>"""
+    print(uc.base64(path, filename))
+
+
+@cli.command()
+@click.argument("path")
 def add(path):
     """ Add an anonymous obejct to the given configuration."""
     print(uc.add(path))
@@ -52,7 +68,7 @@ def get(path):
 @click.argument("path")
 @click.argument("value")
 def add_list(path, value):
-    """Add the given string to an existing list option."""
+    """Add the given value to an existing list option."""
     print(uc.add_list(path, value))
 
 
