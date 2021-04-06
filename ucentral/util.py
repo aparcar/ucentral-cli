@@ -3,10 +3,13 @@ import json
 
 def duck(value):
     if isinstance(value, str):
-        if value.isdigit():
+        if value.isdecimal():
             return int(value)
-        elif value.isdecimal():
+
+        try:
             return float(value)
+        except ValueError:
+            pass
     return value
 
 

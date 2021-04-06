@@ -12,9 +12,6 @@ class Ucentral:
     def __init__(self):
         self.config = dotty({})
         self.schema = {}
-        self.last_load_path = None
-        self.last_schema_path = None
-        self.last_write_path = None
 
     def apply_if_valid(self, tmp_config, ret=True):
         try:
@@ -85,28 +82,18 @@ class Ucentral:
         return pretty(self.config.to_dict())
 
     def load(self, filename: str):
-        if not filename:
-            filename = self.last_load_path
 
         tmp_config = dotty(json.load(open(filename)))
 
         return self.apply_if_valid(tmp_config)
 
     def schema_load(self, filename: str):
-        if not filename:
-            filename = self.last_schema_path
         self.schema = json.load(open(filename))
 
-        self.last_schema_path = filename
         return f"Schema loaded from {filename}"
 
     def write(self, filename: str = None):
-        if not filename:
-            filename = self.last_write_path
-
         json.dump(self.config.to_dict(), open(filename, "w"), sort_keys=True, indent=4)
-
-        self.last_write_path = filename
 
         return f"Config written to {filename}"
 
